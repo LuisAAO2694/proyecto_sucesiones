@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FCC Toolkit - Sucesiones</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>FCC Toolkit - Sucesiones</h1>
+            <p>Calcula términos de sucesiones con un diseño intuitivo</p>
+        </header>
+        <div class="input-section">
+            <div class="input-group">
+                <label for="lower_limit">Límite inferior (m)</label>
+                <input type="number" id="lower_limit" min="1">
+            </div>
+            <div class="input-group">
+                <label for="upper_limit">Límite superior (n)</label>
+                <input type="number" id="upper_limit" min="1">
+            </div>
+            <div class="input-group">
+                <label for="formula">Fórmula (a_k)</label>
+                <input type="text" id="formula">
+            </div>
+        </div>
+        <div class="action-buttons">
+            <button onclick="resetForm()" class="btn secondary">Limpiar</button>
+            <button onclick="calculate()" class="btn primary">Generar</button>
+            <button onclick="loadExample()" class="btn secondary">Cargar Ejemplo</button>
+            <button onclick="exportResult()" class="btn secondary">Exportar Resultado</button>
+        </div>
+        <div class="result-section" id="result-container">
+            <h3>Resultado</h3>
+            <ul id="result-list"></ul>
+            <div id="result-summary">
+                <p id="suma-text"></p>
+                <p id="multiplicacion-text"></p>
+            </div>
+            <div id="error-container" class="error-box" style="display: none;">
+                <p id="error-message"></p>
+            </div>
+            <p id="result-note" class="note"></p>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+</html>

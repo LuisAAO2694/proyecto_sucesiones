@@ -7,27 +7,56 @@ app = Flask(__name__)
 def evaluate_term(expr, k):
     """Evalúa un término de la sucesión para un valor de k."""
     try:
-        term = expr.subs(Symbol('k'), k)
-        term_simplified = simplify(term)
-        return float(term_simplified)
+        term = expr.subs(Symbol('k'), k)  # Sustituye el valor de k en la expresión simbólica
+        term_simplified = simplify(term)  # Simplifica el término resultante
+        return float(term_simplified)     # Convierte el resultado a un número decimal
     except Exception as e:
         raise Exception(f"Error al evaluar el término k={k}: {str(e)}")
 
-def evaluate_sequence(formula, m, n):
-    """Evalúa una sucesión desde m hasta n, calcula suma y multiplicación."""
+def calculate_terms_recursively(expr, current_k, n, terms):
+    """
+    Función recursiva que calcula los términos de la sucesión desde current_k hasta n.
+    
+    Args:
+        expr: Expresión simbólica (usando SymPy) que define la sucesión (ej. 1/k).
+        current_k: Valor actual de k para evaluar el término.
+        n: Límite superior de la sucesión.
+        terms: Lista que acumula los pares (k, valor) de cada término calculado.
+    
+    Returns:
+        La lista terms con todos los términos calculados recursivamente.
+    """
+    # Caso base: si current_k supera el límite superior n, termina la recursión
+    # y retorna la lista de términos acumulados
+    if current_k > n:
+        return terms
+    
     try:
-        # Validar que m y n sean enteros positivos y m <= n
+        # Evalúa el término para el valor actual de k usando la función evaluate_term
+        term_value = evaluate_term(expr, current_k)
+        # Añade el par (current_k, term_value) a la lista de términos
+        terms.append((current_k, term_value))
+        # Llamada recursiva: se invoca a sí misma con el siguiente valor de k (current_k + 1)
+        return calculate_terms_recursively(expr, current_k + 1, n, terms)
+    except Exception as e:
+        # Si hay un error al evaluar un término, lo propaga con un mensaje específico
+        raise Exception(f"Error al evaluar el término k={current_k}: {str(e)}")
+
+def evaluate_sequence(formula, m, n):
+    """Evalúa una sucesión desde m hasta n, calcula suma y multiplicación usando recursividad."""
+    try:
+        # Convierte los límites a enteros y valida que sean positivos y m <= n
         m, n = int(m), int(n)
         if m < 1 or n < 1:
             return None, "Error: Los límites deben ser enteros positivos (m y n deben ser mayores o iguales a 1)", None, None
         if m > n:
             return None, f"Error: El límite inferior ({m}) debe ser menor o igual al límite superior ({n})", None, None
         
-        # Validar que la fórmula no esté vacía
+        # Valida que la fórmula no esté vacía
         if not formula.strip():
             return None, "Error: La fórmula no puede estar vacía", None, None
         
-        # Convertir la fórmula a una expresión de SymPy
+        # Convierte la fórmula a una expresión de SymPy, reemplazando ^ por **
         k = Symbol('k')
         formula = formula.replace('^', '**')
         try:
@@ -35,18 +64,15 @@ def evaluate_sequence(formula, m, n):
         except Exception as e:
             return None, f"Error: La fórmula tiene un error de sintaxis. Asegúrate de usar operadores válidos y que la expresión sea correcta (por ejemplo, '1/k', 'k^2', '2*k + 1')", None, None
         
-        # Calcular los términos iterativamente
+        # Inicializa la lista de términos y la calcula recursivamente desde m hasta n
         terms = []
-        for current_k in range(m, n + 1):
-            try:
-                term_value = evaluate_term(expr, current_k)
-                terms.append((current_k, term_value))
-            except Exception as e:
-                return None, f"Error: No se pudo evaluar el término k={current_k} - {str(e)}", None, None
+        terms = calculate_terms_recursively(expr, m, n, terms)
         
-        # Calcular la suma y la multiplicación de los términos
+        # Calcula la suma de los valores de los términos
         term_values = [term[1] for term in terms]
         suma = sum(term_values)
+        
+        # Calcula la multiplicación de los valores de los términos
         multiplicacion = 1
         for value in term_values:
             multiplicacion *= value

@@ -1,38 +1,44 @@
 function calculate() {
-    const lower_limit = document.getElementById('lower_limit').value;
-    const upper_limit = document.getElementById('upper_limit').value;
-    const formula = document.getElementById('formula').value;
+    const lower_limit = document.getElementById('lower_limit');
+    const upper_limit = document.getElementById('upper_limit');
+    const formula = document.getElementById('formula');
+    const resultContainer = document.getElementById('result-container');
+    const errorContainer = document.getElementById('error-container');
+    const errorMessage = document.getElementById('error-message');
+
+    // Resetear animaciones y estilos
+    [lower_limit, upper_limit, formula].forEach(input => input.classList.remove('valid', 'invalid'));
+    errorContainer.style.display = 'none';
+    resultContainer.classList.remove('highlight');
 
     // Validar que los campos no estén vacíos
-    if (!lower_limit || !upper_limit || !formula) {
-        showError('Todos los campos son obligatorios');
+    if (!lower_limit.value || !upper_limit.value || !formula.value) {
+        showFieldError([lower_limit, upper_limit, formula], 'Todos los campos son obligatorios');
         return;
     }
 
     // Validar que los límites sean números enteros positivos
-    const m = parseInt(lower_limit);
-    const n = parseInt(upper_limit);
+    const m = parseInt(lower_limit.value);
+    const n = parseInt(upper_limit.value);
     if (isNaN(m) || isNaN(n) || m < 1 || n < 1) {
-        showError('Los límites deben ser enteros positivos');
+        showFieldError([lower_limit, upper_limit], 'Los límites deben ser enteros positivos');
         return;
     }
     if (m > n) {
-        showError(`El límite inferior (${m}) debe ser menor o igual al límite superior (${n})`);
+        showFieldError([lower_limit, upper_limit], `El límite inferior (${m}) debe ser menor o igual al límite superior (${n})`);
         return;
     }
 
-    // Validar que la fórmula no esté vacía (ya se valida en el backend)
-    if (!formula.trim()) {
-        showError('La fórmula no puede estar vacía');
-        return;
-    }
+    // Normalizar la fórmula: Convertir 'K' a 'k'
+    let normalizedFormula = formula.value.replace(/K/g, 'k');
 
+    // Enviar solicitud al backend con la fórmula normalizada
     fetch('/calculate', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ formula, lower_limit, upper_limit }),
+        body: JSON.stringify({ formula: normalizedFormula, lower_limit: m, upper_limit: n }),
     })
     .then(response => {
         if (!response.ok) {
@@ -41,16 +47,12 @@ function calculate() {
         return response.json();
     })
     .then(data => {
-        const resultContainer = document.getElementById('result-container');
         const resultList = document.getElementById('result-list');
-        const errorContainer = document.getElementById('error-container');
-        const errorMessage = document.getElementById('error-message');
         const sumaText = document.getElementById('suma-text');
         const multiplicacionText = document.getElementById('multiplicacion-text');
         const resultNote = document.getElementById('result-note');
 
         resultList.innerHTML = '';
-        errorContainer.style.display = 'none';
         sumaText.innerText = '';
         multiplicacionText.innerText = '';
         resultNote.innerText = '';
@@ -58,6 +60,7 @@ function calculate() {
         if (data.error) {
             showError(data.error);
         } else {
+            [lower_limit, upper_limit, formula].forEach(input => input.classList.add('valid', 'animate__animated', 'animate__pulse'));
             data.terms.forEach(term => {
                 const li = document.createElement('li');
                 li.innerText = `Término k=${term[0]}: ${term[1].toFixed(4)}`;
@@ -65,9 +68,9 @@ function calculate() {
             });
             sumaText.innerText = `Suma = ${data.suma.toFixed(4)}`;
             multiplicacionText.innerText = `Multiplicación = ${data.multiplicacion.toExponential(4)}`;
+            resultContainer.classList.add('highlight', 'animate__animated', 'animate__bounceIn');
+            setTimeout(() => resultContainer.classList.remove('animate__bounceIn'), 1000);
         }
-        resultContainer.classList.add('highlight');
-        setTimeout(() => resultContainer.classList.remove('highlight'), 1000);
     })
     .catch(error => {
         console.error('Error:', error);
@@ -85,10 +88,16 @@ function loadExample() {
     ];
 
     const randomExample = examples[Math.floor(Math.random() * examples.length)];
+    const lower_limit = document.getElementById('lower_limit');
+    const upper_limit = document.getElementById('upper_limit');
+    const formula = document.getElementById('formula');
 
-    document.getElementById('lower_limit').value = randomExample.lower_limit;
-    document.getElementById('upper_limit').value = randomExample.upper_limit;
-    document.getElementById('formula').value = randomExample.formula;
+    lower_limit.value = randomExample.lower_limit;
+    upper_limit.value = randomExample.upper_limit;
+    formula.value = randomExample.formula;
+
+    [lower_limit, upper_limit, formula].forEach(input => input.classList.add('valid', 'animate__animated', 'animate__tada'));
+    setTimeout(() => [lower_limit, upper_limit, formula].forEach(input => input.classList.remove('animate__tada')), 1000);
 
     calculate();
 }
@@ -99,19 +108,37 @@ function exportResult() {
     const multiplicacionText = document.getElementById('multiplicacion-text').innerText;
     const fullText = `${resultList}\n${sumaText}\n${multiplicacionText}`;
     navigator.clipboard.writeText(fullText)
-        .then(() => alert('Resultado copiado al portapapeles: ' + fullText))
+        .then(() => {
+            const exportButton = document.querySelector('.btn.secondary:last-child');
+            exportButton.classList.add('animate__animated', 'animate__heartBeat');
+            setTimeout(() => exportButton.classList.remove('animate__heartBeat'), 1000);
+            alert('Resultado copiado al portapapeles: ' + fullText);
+        })
         .catch(err => console.error('Error al copiar: ', err));
 }
 
 function resetForm() {
-    document.getElementById('lower_limit').value = '';
-    document.getElementById('upper_limit').value = '';
-    document.getElementById('formula').value = '';
-    document.getElementById('result-list').innerHTML = '<li>Ingresa una fórmula y límites para calcular la sucesión</li>';
+    const lower_limit = document.getElementById('lower_limit');
+    const upper_limit = document.getElementById('upper_limit');
+    const formula = document.getElementById('formula');
+    const resultContainer = document.getElementById('result-container');
+    const errorContainer = document.getElementById('error-container');
+
+    lower_limit.value = '';
+    upper_limit.value = '';
+    formula.value = '';
+    document.getElementById('result-list').innerHTML = '<li class="placeholder">Ingresa una fórmula y límites para calcular la sucesión</li>';
     document.getElementById('suma-text').innerText = '';
     document.getElementById('multiplicacion-text').innerText = '';
     document.getElementById('result-note').innerText = '';
-    document.getElementById('error-container').style.display = 'none';
+    errorContainer.style.display = 'none';
+    [lower_limit, upper_limit, formula].forEach(input => input.classList.remove('valid', 'invalid'));
+    resultContainer.classList.add('animate__animated', 'animate__fadeOut');
+    setTimeout(() => {
+        resultContainer.classList.remove('animate__fadeOut');
+        resultContainer.classList.add('animate__fadeIn');
+        setTimeout(() => resultContainer.classList.remove('animate__fadeIn'), 1000);
+    }, 500);
 }
 
 function showError(message) {
@@ -128,8 +155,64 @@ function showError(message) {
     resultNote.innerText = '';
     errorMessage.innerText = message;
     errorContainer.style.display = 'block';
+    errorContainer.classList.add('animate__animated', 'animate__shakeX');
+    setTimeout(() => errorContainer.classList.remove('animate__shakeX'), 1000);
+}
+
+function showFieldError(inputs, message) {
+    inputs.forEach(input => {
+        input.classList.add('invalid', 'animate__animated', 'animate__shakeX');
+        setTimeout(() => input.classList.remove('animate__shakeX'), 1000);
+    });
+    showError(message);
+}
+
+function validateField(input) {
+    const lower_limit = document.getElementById('lower_limit');
+    const upper_limit = document.getElementById('upper_limit');
+    const formula = document.getElementById('formula');
+
+    if (input === lower_limit || input === upper_limit) {
+        const value = parseInt(input.value);
+        if (isNaN(value) || value < 1) {
+            input.classList.remove('valid');
+            input.classList.add('invalid', 'animate__animated', 'animate__wobble');
+            setTimeout(() => input.classList.remove('animate__wobble'), 1000);
+        } else {
+            input.classList.remove('invalid');
+            input.classList.add('valid', 'animate__animated', 'animate__pulse');
+            setTimeout(() => input.classList.remove('animate__pulse'), 1000);
+        }
+    } else if (input === formula) {
+        if (!input.value.trim()) {
+            input.classList.remove('valid');
+            input.classList.add('invalid', 'animate__animated', 'animate__wobble');
+            setTimeout(() => input.classList.remove('animate__wobble'), 1000);
+        } else {
+            input.classList.remove('invalid');
+            input.classList.add('valid', 'animate__animated', 'animate__pulse');
+            setTimeout(() => input.classList.remove('animate__pulse'), 1000);
+        }
+    }
+
+    // Validar relación entre límites
+    if (lower_limit.value && upper_limit.value) {
+        const m = parseInt(lower_limit.value);
+        const n = parseInt(upper_limit.value);
+        if (m > n) {
+            [lower_limit, upper_limit].forEach(input => {
+                input.classList.remove('valid');
+                input.classList.add('invalid', 'animate__animated', 'animate__wobble');
+                setTimeout(() => input.classList.remove('animate__wobble'), 1000);
+            });
+        }
+    }
 }
 
 window.onload = () => {
-    document.getElementById('result-list').innerHTML = '<li>Ingresa una fórmula y límites para calcular la sucesión</li>';
+    document.getElementById('result-list').innerHTML = '<li class="placeholder">Ingresa una fórmula y límites para calcular la sucesión</li>';
+    const inputs = [document.getElementById('lower_limit'), document.getElementById('upper_limit'), document.getElementById('formula')];
+    inputs.forEach(input => {
+        input.addEventListener('input', () => validateField(input));
+    });
 };

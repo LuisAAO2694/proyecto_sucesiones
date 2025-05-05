@@ -1,6 +1,6 @@
 body {
     font-family: 'Poppins', sans-serif;
-    background-color: #f4f4f9;
+    background-color: #1a1a2e;;
     margin: 0;
     padding: 0;
 }
@@ -17,19 +17,20 @@ header {
 }
 
 header h1 {
+    color: #fafafa;
     font-size: 24px;
     margin: 0;
 }
 
 header p {
     font-size: 16px;
-    color: #666;
+    color: #d8d7d7;
 }
 
 .input-section {
     display: flex;
     flex-wrap: wrap;
-    gap: 15px;
+    gap: 50px;
     margin-bottom: 20px;
 }
 
@@ -39,9 +40,11 @@ header p {
 }
 
 .input-group label {
+    color: #ffffff;
     display: block;
     font-size: 14px;
     margin-bottom: 5px;
+    text-align: center;
 }
 
 .input-group input {
@@ -56,6 +59,8 @@ header p {
     display: flex;
     gap: 10px;
     margin-bottom: 20px;
+    justify-content: center; /* Esto centra los botones horizontalmente */
+    flex-wrap: wrap;
 }
 
 .btn {
@@ -67,7 +72,7 @@ header p {
 }
 
 .btn.primary {
-    background-color: #007bff;
+    background-color: #4a90e2;
     color: white;
 }
 
@@ -100,7 +105,7 @@ header p {
 }
 
 #result-summary p {
-    font-size: 14px;
+    font-size: 19px;
     font-weight: bold;
     margin: 5px 0;
 }
@@ -133,4 +138,23 @@ header p {
 @keyframes highlight {
     0% { background-color: #e0e0e0; }
     100% { background-color: white; }
+}
+
+/* Media query para pantallas pequeñas */
+@media (max-width: 600px) {
+    .input-section {
+        flex-direction: column;
+        gap: 15px; /* Espacio reducido en pantallas pequeñas */
+    }
+    .input-group {
+        min-width: 100%; /* Asegura que los inputs ocupen todo el ancho */
+    }
+    .action-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .btn {
+        width: 100%;
+        padding: 12px;
+    }
 }

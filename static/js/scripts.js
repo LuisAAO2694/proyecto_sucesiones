@@ -63,7 +63,7 @@ function calculate() {
             [lower_limit, upper_limit, formula].forEach(input => input.classList.add('valid', 'animate__animated', 'animate__pulse'));
             data.terms.forEach(term => {
                 const li = document.createElement('li');
-                li.innerText = `Término k=${term[0]}: ${term[1].toFixed(4)}`;
+                li.innerText = `• a_${term[0]} = ${term[2]} = ${term[1].toFixed(4)}`; // Muestra k, expresión y valor
                 resultList.appendChild(li);
             });
             sumaText.innerText = `Suma = ${data.suma.toFixed(4)}`;

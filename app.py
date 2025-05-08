@@ -7,39 +7,32 @@ app = Flask(__name__)
 def evaluate_term(expr, k):
     """Evalúa un término de la sucesión para un valor de k."""
     try:
-        term = expr.subs(Symbol('k'), k)  # Sustituye el valor de k en la expresión simbólica
-        term_simplified = simplify(term)  # Simplifica el término resultante
-        return float(term_simplified)     # Convierte el resultado a un número decimal
+        term = expr.subs(Symbol('k'), k)  # Sustituye el valor de k
+        term_simplified = simplify(term)  # Simplifica el término
+        return float(term_simplified), str(term)  # Devuelve el valor numérico y la expresión como string
     except Exception as e:
         raise Exception(f"Error al evaluar el término k={k}: {str(e)}")
 
 def calculate_terms_recursively(expr, current_k, n, terms):
     """
-    Función recursiva que calcula los términos de la sucesión desde current_k hasta n.
+#     Función recursiva que calcula los términos de la sucesión desde current_k hasta n.
     
-    Args:
-        expr: Expresión simbólica (usando SymPy) que define la sucesión (ej. 1/k).
-        current_k: Valor actual de k para evaluar el término.
-        n: Límite superior de la sucesión.
-        terms: Lista que acumula los pares (k, valor) de cada término calculado.
+#     Args:
+#         expr: Expresión simbólica (usando SymPy) que define la sucesión (ej. 1/k).
+#         current_k: Valor actual de k para evaluar el término.
+#         n: Límite superior de la sucesión.
+#         terms: Lista que acumula los pares (k, valor) de cada término calculado.
     
-    Returns:
-        La lista terms con todos los términos calculados recursivamente.
-    """
-    # Caso base: si current_k supera el límite superior n, termina la recursión
-    # y retorna la lista de términos acumulados
+#     Returns:
+#         La lista terms con todos los términos calculados recursivamente.
+#     """
     if current_k > n:
         return terms
-    
     try:
-        # Evalúa el término para el valor actual de k usando la función evaluate_term
-        term_value = evaluate_term(expr, current_k)
-        # Añade el par (current_k, term_value) a la lista de términos
-        terms.append((current_k, term_value))
-        # Llamada recursiva: se invoca a sí misma con el siguiente valor de k (current_k + 1)
+        term_value, term_expr = evaluate_term(expr, current_k)  # Obtiene valor y expresión
+        terms.append((current_k, term_value, term_expr))  # Añade tupla con (k, valor, expresión)
         return calculate_terms_recursively(expr, current_k + 1, n, terms)
     except Exception as e:
-        # Si hay un error al evaluar un término, lo propaga con un mensaje específico
         raise Exception(f"Error al evaluar el término k={current_k}: {str(e)}")
 
 def evaluate_sequence(formula, m, n):
@@ -71,7 +64,7 @@ def evaluate_sequence(formula, m, n):
         # Calcula la suma de los valores de los términos
         term_values = [term[1] for term in terms]
         suma = sum(term_values)
-        
+
         # Calcula la multiplicación de los valores de los términos
         multiplicacion = 1
         for value in term_values:
@@ -102,11 +95,10 @@ def calculate():
     if error:
         return jsonify({'result': 'Error', 'error': error, 'terms': [], 'suma': None, 'multiplicacion': None})
 
-    # Formatear el resultado como una lista de términos
     result_str = f"Sucesión para a_k = {formula}, k desde {lower_limit} hasta {upper_limit}:\n"
-    result_str += "\n".join([f"Término k={k}: {value:.4f}" for k, value in terms])
+    result_str += "\n".join([f"• a_{k} = {expr} = {value:.4f}" for k, value, expr in terms])
     result_str += f"\n\nSuma = {suma:.4f}"
-    result_str += f"\nMultiplicación = {multiplicacion:.4e}"  # Formato científico para la multiplicación
+    result_str += f"\nMultiplicación = {multiplicacion:.4e}"
     
     return jsonify({
         'result': result_str,
